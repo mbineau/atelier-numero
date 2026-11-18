@@ -18,3 +18,34 @@ export function colorName(rgb){
   for(const ref of references){const d=(lab[0]-ref.lab[0])**2+(lab[1]-ref.lab[1])**2+(lab[2]-ref.lab[2])**2;if(d<best){best=d;name=ref.name;}}
   return name;
 }
+
+// Name the complete palette together: nearest-name lookup alone can give
+// different paints the same label. Qualifiers describe relative lightness
+// within that color family; paint values, ordering and numbers stay intact.
+export function paletteColorNames(colors){
+  const names=colors.map(colorName),groups=new Map();
+  colors.forEach((rgb,index)=>{
+    const name=names[index];
+    if(!groups.has(name))groups.set(name,new Map());
+    const group=groups.get(name),key=rgb.join(',');
+    if(!group.has(key))group.set(key,{rgb,lightness:rgbToLab(...rgb)[0],indices:[]});
+    group.get(key).indices.push(index);
+  });
+  for(const [base,colorsByRgb]of groups){
+    if(colorsByRgb.size<2)continue;
+    const group=[...colorsByRgb.values()].sort((a,b)=>b.lightness-a.lightness||a.rgb[0]-b.rgb[0]||a.rgb[1]-b.rgb[1]||a.rgb[2]-b.rgb[2]);
+    const qualifiers={
+      2:['clair','foncé'],
+      3:['clair','moyen','foncé'],
+      4:['très clair','clair','foncé','très foncé'],
+      5:['très clair','clair','moyen','foncé','très foncé']
+    }[group.length];
+    const alreadyShaded=/(?:^| )(clair|foncé|pâle|sombre|moyen)(?: |$)/u.test(base);
+    group.forEach((color,rank)=>{
+      let qualifier=qualifiers?.[rank]||`ton ${rank+1}`;
+      if(alreadyShaded&&qualifiers)qualifier={'clair':'plus clair','foncé':'plus foncé','moyen':'intermédiaire','très clair':'le plus clair','très foncé':'le plus foncé'}[qualifier];
+      for(const index of color.indices)names[index]=`${base} · ${qualifier}`;
+    });
+  }
+  return names;
+}

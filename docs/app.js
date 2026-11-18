@@ -1,4 +1,4 @@
-import {colorName} from './colors.js';
+import {paletteColorNames} from './colors.js?v=names-2';
 const $=id=>document.getElementById(id);
 const state={image:null,result:null,view:'colors',zoom:1,selected:null,worker:null,busy:false,source:'Échappée alpine',url:null,geometry:null,painted:null,paintColor:0};
 let debounce,toastTimer,loadGeneration=0;
@@ -16,7 +16,7 @@ function compute(){if(!state.image)return;state.worker?.terminate();setBusy(true
   const worker=new Worker('./worker.js',{type:'module'});state.worker=worker;
   worker.onmessage=({data})=>{if(worker!==state.worker)return;if(data.type==='progress'){$('progress-text').textContent=data.message+'…';$('progress-bar').style.width=`${data.value*100}%`;}
     if(data.type==='error'){setBusy(false);toast('La conversion a échoué : '+data.message);worker.terminate();}
-    if(data.type==='result'){state.result=data.result;state.result.palette.forEach(c=>c.name=colorName(c.rgb));state.painted=new Int16Array(state.result.regions.length).fill(-1);state.paintColor=0;state.geometry=buildGeometry(data.result);setBusy(false);worker.terminate();state.worker=null;updatePalette();updateStats();render();}
+    if(data.type==='result'){state.result=data.result;const names=paletteColorNames(state.result.palette.map(c=>c.rgb));state.result.palette.forEach((c,i)=>c.name=names[i]);state.painted=new Int16Array(state.result.regions.length).fill(-1);state.paintColor=0;state.geometry=buildGeometry(data.result);setBusy(false);worker.terminate();state.worker=null;updatePalette();updateStats();render();}
   };
   worker.onerror=()=>{if(worker!==state.worker)return;setBusy(false);toast('Impossible de démarrer le calcul. Rechargez la page dans un navigateur récent.');worker.terminate();};
   worker.postMessage({data,width,height,...options},[data.buffer]);
