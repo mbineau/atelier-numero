@@ -2,7 +2,7 @@ import {paletteColorNames} from './colors.js?v=names-2';
 import {preparePrint,artworkSvg,swatchesSvg} from './print.js?v=print-3';
 import {svgToPng} from './png.js?v=print-3';
 const $=id=>document.getElementById(id);
-const state={image:null,result:null,view:'colors',zoom:1,selected:null,worker:null,busy:false,source:'Échappée alpine',url:null,geometry:null,painted:null,paintColor:0};
+const state={image:null,result:null,view:'numbers',zoom:1,selected:null,worker:null,busy:false,source:'Échappée alpine',url:null,geometry:null,painted:null,paintColor:0};
 let debounce,toastTimer,loadGeneration=0;
 const settings=()=>Object.fromEntries(['colors','fusion','detail'].map(id=>[id,+$(id).value]));
 const hex=rgb=>'#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
